@@ -149,10 +149,10 @@ You have {1} votes left""",
         PrevPageKey: "◄ Prev",
         AcceptSellRequestKey: "Buy",
         AcceptBuyRequestKey: "Sell",
-        RequestAlreadyAcceptedKey: "Request has already been acceptedd someone",
+        RequestAlreadyAcceptedKey: "Request has been already accepted by someone",
         RequestWasAcceptedKey: "Your request #{0} has been accepted by @{1}",
         AcceptKey: "Accept",
-        RequestWasSentKey: "Request was sentю It will be automatically cancelled in 5 minutes if it is not accepted by the other side.",
+        RequestWasSentKey: "Request has been sent. It will be automatically cancelled in 5 minutes if not accepted by the other side.",
         RequestHasBeenAcceptedBothSidesKey: """Request #{0} has been accepted by both sides. You can contact with @{1} to make a deal.
 You can make a deal directly or using garantee.
 To view the list of garantors press click the appropriate button in start menu""",
