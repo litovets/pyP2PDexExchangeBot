@@ -299,6 +299,18 @@ class DB:
         self.cur.execute(sql)
         self.conn.commit()
 
+    def GetUsersCount(self):
+        sql = "SELECT count(*) FROM users"
+        self.cur.execute(sql)
+        row = self.cur.fetchone()
+        return row[0]
+
+    def GetUsersCountWithNotifications(self):
+        sql = "SELECT count(*) FROM notifications"
+        self.cur.execute(sql)
+        row = self.cur.fetchone()
+        return row[0]
+
     def __FillAssetsTable(self):
         self.cur.executemany('INSERT INTO assets (assetName) VALUES (?)', config.assets)
 

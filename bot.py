@@ -138,6 +138,21 @@ Please, enter command as <b>/unregister 'username'</b>""", parse_mode="HTML")
             return
         result = "\n".join(escrowList)
         bot.send_message(message.chat.id, result, parse_mode="HTML")
+    elif message.text.startswith("/stats"):
+        if (masterChatId == 0 or len(masterChatAdmins) == 0):
+            return
+        if not message.from_user.username or len(message.from_user.username) == 0:
+            bot.send_message(message.chat.id, """Установите сначала никнейм в телеграме
+Set 'username' first please""")
+            return
+        administrators = [user.user.username for user in masterChatAdmins]
+        if not message.from_user.username in administrators:
+            return
+        usersCount = db.GetUsersCount()
+        usersWithNotif = db.GetUsersCountWithNotifications()
+        result = "\nusers: {0}\nwith notifications: {1}".format(usersCount, usersWithNotif)
+        bot.send_message(message.chat.id, result)
+
     '''else:
         usage = """<b>Использование:</b>
 /setmasterchat - Зарегистрировать мастер-чат(админ)
