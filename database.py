@@ -176,7 +176,9 @@ class DB:
             result = self.cur.fetchone()
         finally:
             lock.release()
-            return result[0] > 0
+            if result[0] == 0:
+                self.AddUser(username)
+            return True
 
     def AddUser(self, username):
         sql = "INSERT INTO users(username) VALUES(\"{}\")".format(username)
