@@ -216,13 +216,11 @@ class DB:
         sql = "SELECT userId FROM users WHERE username = \"{0}\"".format(username)
         self.cur.execute(sql)
         result = self.cur.fetchone()
-        if result == None or result[0] == None:
-            return
-        userId = int(result[0])
-        if userId == 0:
-            return        
-        sql = "INSERT OR IGNORE INTO users_blacklist(userId) VALUES({0})".format(userId)
-        self.cur.execute(sql)
+        if result != None and result[0] != None:
+            userId = int(result[0])
+            if userId != 0:
+                sql = "INSERT OR IGNORE INTO users_blacklist(userId) VALUES({0})".format(userId)
+                self.cur.execute(sql)
         self.conn.commit()
         self.DeleteUser(username)
 
