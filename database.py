@@ -368,7 +368,7 @@ class DB:
         sql = "PRAGMA table_info('users')"
         self.cur.execute(sql)
         result = self.cur.fetchall()
-        if len(result) > 1 and 'userId' in result[2]:
+        if len(result) > 2 and 'userId' in result[2]:
             return
         sql = "ALTER TABLE users ADD COLUMN userId INTEGER DEFAULT 0"
         self.cur.execute(sql)
