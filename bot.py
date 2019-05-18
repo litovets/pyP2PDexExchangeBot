@@ -152,7 +152,23 @@ Set 'username' first please""")
         usersWithNotif = db.GetUsersCountWithNotifications()
         result = "\nusers: {0}\nwith notifications: {1}".format(usersCount, usersWithNotif)
         bot.send_message(message.chat.id, result)
-
+    elif message.text.startswith("/blockbyreqid"):
+        if (masterChatId == 0 or len(masterChatAdmins) == 0):
+            return
+        if not message.from_user.username or len(message.from_user.username) == 0:
+            bot.send_message(message.chat.id, """Установите сначала никнейм в телеграме
+Set 'username' first please""")
+            return
+        administrators = [user.user.username for user in masterChatAdmins]
+        if not message.from_user.username in administrators:
+            return
+        reqId = message.text.replace("/blockbyreqid", "").strip(' ').strip('@')
+        if len(reqId) == 0:
+            bot.send_message(message.chat.id, """Введите пожалуйста команду в виде <b>/blockbyreqid 'req id'</b>
+Please, enter command as <b>/blockbyreqid 'req id'</b>""", parse_mode="HTML")
+            return
+        db.AddUserToBlackListByReqId(int(reqId))
+        bot.send_message(message.chat.id, "Request with id {0} was deleted".format(reqId))
     '''else:
         usage = """<b>Использование:</b>
 /setmasterchat - Зарегистрировать мастер-чат(админ)
@@ -160,10 +176,15 @@ Set 'username' first please""")
 /register - зарегистрироваться
 /escrowlist - Вывод списка гарантов
 /unregister 'username' - удалить юзера (админ)
+/blockbyreqid 'req id' - удалить заявку и добавить юзера в черный список
 """
         bot.send_message(message.chat.id, usage, parse_mode="HTML")'''
 
 def handle_private_message(message: Message):
+    if db.IsUserInBlacklist(message.from_user.id):
+        bot.send_message(message.chat.id, """Вы в черном списке!
+You are in blacklist!""")
+        return
     if message.from_user.username == None or len(message.from_user.username) == 0:
         bot.send_message(message.chat.id, """Вам сначала нужно установить никнейм в телеграме.
 You need to set your username in Telegram first.""")
@@ -173,6 +194,7 @@ You need to set your username in Telegram first.""")
         return
     username = message.from_user.username
     db.SetUserChatId(username, message.chat.id)
+    db.UpdateUser(username, message.from_user.id)
     if (message.text.startswith("/start")):
         if not (username in userProcesses):
             userProcesses[username] = UserRequestProcess(bot, db, username, message.chat.id)

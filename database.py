@@ -34,6 +34,7 @@ class DB:
         self.cur.executescript(sql)
         self.__FillAssetsTable()
         self.__AddChatIdColumnToUsersTable()
+        self.__BlacklistMigration()
         self.__cleanup_db()
 
     def GetAssetsList(self):
@@ -200,6 +201,41 @@ class DB:
         self.cur.execute(sql)
         self.conn.commit()
 
+    def UpdateUser(self, username, userId):
+        sql = "UPDATE users SET userId={0}, username=\"{1}\" WHERE username=\"{1}\" OR userId={0}".format(userId, username)
+        self.cur.execute(sql)
+        self.conn.commit()
+
+    def AddUserToBlackListByReqId(self, reqId: int):
+        sql = "SELECT username FROM requests WHERE id={0}".format(reqId)
+        self.cur.execute(sql)
+        result = self.cur.fetchall()
+        if len(result) == 0:
+            return
+        username = str(result[0][0])
+        sql = "SELECT userId FROM users WHERE username = \"{0}\"".format(username)
+        self.cur.execute(sql)
+        result = self.cur.fetchone()
+        if result == None or result[0] == None:
+            return
+        userId = int(result[0])
+        if userId == 0:
+            return        
+        sql = "INSERT OR IGNORE INTO users_blacklist(userId) VALUES({0})".format(userId)
+        self.cur.execute(sql)
+        self.conn.commit()
+        self.DeleteUser(username)
+
+    def IsUserInBlacklist(self, userId):
+        try:
+            lock.acquire(True)
+            sql = "SELECT count(*) FROM users_blacklist WHERE userId={0}".format(userId)
+            self.cur.execute(sql)
+            count = self.cur.fetchone()
+        finally:
+            lock.release()
+            return count[0] > 0
+
     def GetVotesCount(self, username):
         sql = "SELECT count(*) FROM users_votes WHERE username = \"{}\"".format(username)
         self.cur.execute(sql)
@@ -323,6 +359,18 @@ class DB:
         if len(result) > 1 and 'chatId' in result[1]:
             return
         sql = "ALTER TABLE users ADD COLUMN chatId INTEGER"
+        self.cur.execute(sql)
+        self.conn.commit()
+
+    def __BlacklistMigration(self):
+        sql = "CREATE TABLE IF NOT EXISTS users_blacklist (userId INTEGER, UNIQUE(userId))"
+        self.cur.execute(sql)
+        sql = "PRAGMA table_info('users')"
+        self.cur.execute(sql)
+        result = self.cur.fetchall()
+        if len(result) > 1 and 'userId' in result[2]:
+            return
+        sql = "ALTER TABLE users ADD COLUMN userId INTEGER DEFAULT 0"
         self.cur.execute(sql)
         self.conn.commit()
 
